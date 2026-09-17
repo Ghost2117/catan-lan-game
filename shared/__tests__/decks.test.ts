@@ -3,7 +3,7 @@ import { buildDevDeck } from '../decks.js';
 import type { PlayerCount } from '../types.js';
 
 describe('buildDevDeck', () => {
-  it.each([3, 4] as PlayerCount[])('builds the official 25-card base-game deck for %i players', (count) => {
+  it.each([2, 3, 4] as PlayerCount[])('builds the official 25-card base-game deck for %i players', (count) => {
     const deck = buildDevDeck(count);
     expect(deck).toHaveLength(25);
     const counts = tally(deck);

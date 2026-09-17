@@ -1,8 +1,11 @@
 # Catan LAN
 
-A Catan-style board game for 3-6 players over a local network (same WiFi/router)
+A Catan-style board game for 2-6 players over a local network (same WiFi/router)
 — no internet, no accounts, no installs beyond a browser. Built from the plan
 in [`docs/catan-lan-plan.md`](docs/catan-lan-plan.md).
+
+3-4 players is the standard game and 5-6 is the official Player Extension;
+2 players is an unofficial house-rule mode (see "House rules" below).
 
 One player hosts the game on their machine; everyone else joins from a
 browser on any device on the same network.
@@ -26,11 +29,11 @@ Vite dev server proxies WebSocket traffic to the game server.
 ## Testing
 
 ```bash
-npm test          # 183 tests: unit, component, and integration
+npm test          # 189 tests: unit, component, and integration
 npm run typecheck # shared/server/client type checking
 ```
 
-183 tests across 16 files, organized by layer:
+189 tests across 16 files, organized by layer:
 
 **Unit tests — `shared/`** (pure game logic, no I/O):
 - `board.test.ts` — hex geometry, vertex/edge adjacency, harbor
@@ -108,6 +111,22 @@ twice — for 5-6p), each harbor's 2:1/3:1 rate only applies to a player who
 has a settlement/city on one of that harbor's two vertices, and a player
 never gets a better rate for a resource they don't hold the matching harbor
 for.
+
+## House rules
+
+- **2 players**: no official Catan rulebook covers 2-player play, so this
+  is an unofficial house-rule mode rather than a documented variant. It
+  reuses the exact same board, 9 harbors, 19-per-resource bank, and
+  25-card dev deck as the 3-4 player game — nothing is scaled down for
+  having fewer people at the table. In practice that means resources and
+  the board are less contested than an official player count would give
+  you (more of the board and bank effectively available per player), so
+  games likely play faster and looser than 3+ player games. If you'd
+  rather play something closer to how 2-player Catan is often informally
+  house-ruled at physical tables — e.g. adding a non-playing "neutral"
+  settlement/city to soak up some board space and preserve scarcity —
+  that isn't implemented; this mode is deliberately the simplest possible
+  extension of the existing rules rather than a new mechanic.
 
 ## Known simplifications vs. the physical game
 

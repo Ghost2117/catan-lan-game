@@ -4,12 +4,12 @@ import { mulberry32 } from '../rng.js';
 import { RESOURCES, type PlayerCount } from '../types.js';
 
 describe('generateBoard', () => {
-  it.each([3, 4, 5, 6] as PlayerCount[])('produces the right tile count for %i players', (count) => {
+  it.each([2, 3, 4, 5, 6] as PlayerCount[])('produces the right tile count for %i players', (count) => {
     const board = generateBoard(count, { rng: mulberry32(42) });
     expect(board.tiles.length).toBe(count <= 4 ? 19 : 30);
   });
 
-  it.each([3, 4, 5, 6] as PlayerCount[])('gives every non-desert tile a number 2-12 excluding 7 (%i players)', (count) => {
+  it.each([2, 3, 4, 5, 6] as PlayerCount[])('gives every non-desert tile a number 2-12 excluding 7 (%i players)', (count) => {
     const board = generateBoard(count, { rng: mulberry32(1) });
     for (const tile of board.tiles) {
       if (tile.resource === 'desert') {
@@ -63,7 +63,7 @@ describe('generateBoard', () => {
     expect(board.tiles.find((t) => t.id === tileId)?.resource).toBe('desert');
   });
 
-  it.each([3, 4, 5, 6] as PlayerCount[])('assigns the exact official harbor composition for %i players', (count) => {
+  it.each([2, 3, 4, 5, 6] as PlayerCount[])('assigns the exact official harbor composition for %i players', (count) => {
     const board = generateBoard(count, { rng: mulberry32(9) });
     const expectedTotal = count <= 4 ? 9 : 11;
     expect(board.ports.length).toBe(expectedTotal);

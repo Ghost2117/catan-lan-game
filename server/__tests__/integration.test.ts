@@ -258,9 +258,9 @@ describe('server integration', () => {
       const client = new TestClient(port);
       await client.waitForOpen();
       // @ts-expect-error deliberately invalid for the test
-      client.send({ type: 'CREATE_ROOM', name: 'Alice', color: 'red', playerCount: 2 });
+      client.send({ type: 'CREATE_ROOM', name: 'Alice', color: 'red', playerCount: 1 });
       const errorMsg = await client.waitFor((m) => m.type === 'ERROR');
-      expect(errorMsg).toMatchObject({ type: 'ERROR', message: expect.stringContaining('3, 4, 5, or 6') });
+      expect(errorMsg).toMatchObject({ type: 'ERROR', message: expect.stringContaining('2, 3, 4, 5, or 6') });
       client.close();
     });
 

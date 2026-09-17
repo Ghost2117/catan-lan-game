@@ -16,7 +16,10 @@ export const MIN_LARGEST_ARMY = 3;
 // resource bank regardless of whether 3 or 4 people are playing; the 5-6p
 // extension adds enough cards to comfortably support more players (24 of
 // each is the exact total once the extension's resource cards are added).
+// "2" is an unofficial house-rule mode (no rulebook covers 2-player Catan)
+// that reuses the same 3-4p bank rather than a smaller one — see README.
 export const BANK_SUPPLY: Record<PlayerCount, number> = {
+  2: 19,
   3: 19,
   4: 19,
   5: 24,
@@ -27,8 +30,10 @@ export const BANK_SUPPLY: Record<PlayerCount, number> = {
 // (3-4 players, one fixed deck regardless of count): 25 cards (14 knight, 5
 // victory point, 2 each of road building/year of plenty/monopoly). The 5-6p
 // extension adds 9 cards on top (6 knight, 1 each of road building/year of
-// plenty/monopoly) and adds no victory point cards, for a 34-card deck.
+// plenty/monopoly) and adds no victory point cards, for a 34-card deck. "2"
+// is the unofficial house-rule mode, reusing the 3-4p deck (see BANK_SUPPLY).
 const DEV_DECK_COMPOSITION: Record<PlayerCount, Record<DevCardType, number>> = {
+  2: { knight: 14, victoryPoint: 5, roadBuilding: 2, yearOfPlenty: 2, monopoly: 2 },
   3: { knight: 14, victoryPoint: 5, roadBuilding: 2, yearOfPlenty: 2, monopoly: 2 },
   4: { knight: 14, victoryPoint: 5, roadBuilding: 2, yearOfPlenty: 2, monopoly: 2 },
   5: { knight: 20, victoryPoint: 5, roadBuilding: 3, yearOfPlenty: 3, monopoly: 3 },
