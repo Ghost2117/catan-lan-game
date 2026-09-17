@@ -2,7 +2,7 @@
 
 A Catan-style board game for 4-6 players over a local network (same WiFi/router)
 — no internet, no accounts, no installs beyond a browser. Built from the plan
-in [`../docs/catan-lan-plan.md`](../docs/catan-lan-plan.md).
+in [`docs/catan-lan-plan.md`](docs/catan-lan-plan.md).
 
 One player hosts the game on their machine; everyone else joins from a
 browser on any device on the same network.
