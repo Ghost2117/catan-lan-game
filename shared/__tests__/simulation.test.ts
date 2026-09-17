@@ -198,7 +198,7 @@ function driveOneTurn(state: GameState, rng: () => number): GameState {
   return s;
 }
 
-describe.each([4, 5, 6] as PlayerCount[])('full game simulation (%i players)', (playerCount) => {
+describe.each([3, 4, 5, 6] as PlayerCount[])('full game simulation (%i players)', (playerCount) => {
   it('reaches a winner without the state machine ever getting stuck', () => {
     let state = makeGame(playerCount, 12345 + playerCount);
     state = playThroughSetup(state, applyAction);

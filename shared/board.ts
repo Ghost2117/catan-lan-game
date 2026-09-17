@@ -9,7 +9,11 @@ import { type Rng, shuffle } from './rng.js';
  * standard 3-4-5-4-3 board and the 3-4-5-6-5-4-3 5-6 player board), so this
  * generalizes without needing a name-brand coordinate scheme.
  */
+// The physical game ships one board/component set for 3-4 players — the
+// box doesn't change when a 3rd or 4th player joins — so the "3" entries
+// below are identical to "4" throughout this file, not a smaller board.
 const ROW_LENGTHS: Record<PlayerCount, number[]> = {
+  3: [3, 4, 5, 4, 3],
   4: [3, 4, 5, 4, 3],
   5: [3, 4, 5, 6, 5, 4, 3],
   6: [3, 4, 5, 6, 5, 4, 3],
@@ -21,12 +25,14 @@ const ROW_LENGTHS: Record<PlayerCount, number[]> = {
 // shuffle digitally instead of dealing physical hexes face-down), only
 // the totals, which is an equivalent randomization.
 const RESOURCE_COUNTS: Record<PlayerCount, Record<Resource | 'desert', number>> = {
+  3: { desert: 1, brick: 3, lumber: 4, ore: 3, grain: 4, wool: 4 },
   4: { desert: 1, brick: 3, lumber: 4, ore: 3, grain: 4, wool: 4 },
   5: { desert: 2, brick: 5, lumber: 6, ore: 5, grain: 6, wool: 6 },
   6: { desert: 2, brick: 5, lumber: 6, ore: 5, grain: 6, wool: 6 },
 };
 
 const NUMBER_COUNTS: Record<PlayerCount, number[]> = {
+  3: [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12],
   4: [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12],
   5: [2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12, 12],
   6: [2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12, 12],
@@ -38,6 +44,7 @@ const NUMBER_COUNTS: Record<PlayerCount, number[]> = {
 // (not one of every resource again) — so the 5-6p total is 5 generic + 6
 // resource-specific, with wool appearing twice.
 const PORT_COMPOSITION: Record<PlayerCount, PortType[]> = {
+  3: ['3:1', '3:1', '3:1', '3:1', 'brick', 'lumber', 'ore', 'grain', 'wool'],
   4: ['3:1', '3:1', '3:1', '3:1', 'brick', 'lumber', 'ore', 'grain', 'wool'],
   5: ['3:1', '3:1', '3:1', '3:1', '3:1', 'brick', 'lumber', 'ore', 'grain', 'wool', 'wool'],
   6: ['3:1', '3:1', '3:1', '3:1', '3:1', 'brick', 'lumber', 'ore', 'grain', 'wool', 'wool'],

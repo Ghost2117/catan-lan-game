@@ -9,7 +9,7 @@ interface ConnState {
 }
 
 export function isValidPlayerCount(n: unknown): n is PlayerCount {
-  return n === 4 || n === 5 || n === 6;
+  return n === 3 || n === 4 || n === 5 || n === 6;
 }
 
 /**
@@ -51,7 +51,7 @@ export function attachGameServer(httpServer: HttpServer): { lobby: Lobby; wss: W
     switch (message.type) {
       case 'CREATE_ROOM': {
         if (!isValidPlayerCount(message.playerCount)) {
-          ws.send(JSON.stringify({ type: 'ERROR', message: 'Player count must be 4, 5, or 6' }));
+          ws.send(JSON.stringify({ type: 'ERROR', message: 'Player count must be 3, 4, 5, or 6' }));
           return;
         }
         const name = message.name.trim().slice(0, 20) || 'Player';

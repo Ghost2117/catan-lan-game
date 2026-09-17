@@ -82,6 +82,7 @@ export function HomeScreen({ send, error }: { send: (m: ClientMessage) => void; 
           <label>
             Number of players
             <select value={playerCount} onChange={(e) => setPlayerCount(Number(e.target.value) as PlayerCount)} style={inputStyle}>
+              <option value={3}>3 players (standard)</option>
               <option value={4}>4 players (standard)</option>
               <option value={5}>5 players (extension)</option>
               <option value={6}>6 players (extension)</option>

@@ -1,6 +1,6 @@
 # Catan LAN
 
-A Catan-style board game for 4-6 players over a local network (same WiFi/router)
+A Catan-style board game for 3-6 players over a local network (same WiFi/router)
 — no internet, no accounts, no installs beyond a browser. Built from the plan
 in [`docs/catan-lan-plan.md`](docs/catan-lan-plan.md).
 
@@ -26,11 +26,11 @@ Vite dev server proxies WebSocket traffic to the game server.
 ## Testing
 
 ```bash
-npm test          # 177 tests: unit, component, and integration
+npm test          # 183 tests: unit, component, and integration
 npm run typecheck # shared/server/client type checking
 ```
 
-177 tests across 16 files, organized by layer:
+183 tests across 16 files, organized by layer:
 
 **Unit tests — `shared/`** (pure game logic, no I/O):
 - `board.test.ts` — hex geometry, vertex/edge adjacency, harbor

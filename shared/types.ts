@@ -15,7 +15,7 @@ export type DevCardType =
   | 'monopoly'
   | 'victoryPoint';
 
-export type PlayerCount = 4 | 5 | 6;
+export type PlayerCount = 3 | 4 | 5 | 6;
 
 export type Phase =
   | 'lobby'

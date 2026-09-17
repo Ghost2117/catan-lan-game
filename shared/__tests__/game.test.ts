@@ -8,7 +8,7 @@ function samplePlayers(count: number) {
 }
 
 describe('createGame', () => {
-  it.each([4, 5, 6] as PlayerCount[])('builds a valid initial state for %i players', (count) => {
+  it.each([3, 4, 5, 6] as PlayerCount[])('builds a valid initial state for %i players', (count) => {
     const state = createGame({
       roomCode: 'ABCD',
       playerCount: count,
@@ -18,7 +18,7 @@ describe('createGame', () => {
 
     expect(state.phase).toBe('setup');
     expect(state.players).toHaveLength(count);
-    expect(state.board.tiles).toHaveLength(count === 4 ? 19 : 30);
+    expect(state.board.tiles).toHaveLength(count <= 4 ? 19 : 30);
     expect(state.currentPlayerIndex).toBe(0);
     expect(state.turnNumber).toBe(0);
     expect(state.dice).toBeNull();
@@ -46,6 +46,9 @@ describe('createGame', () => {
   });
 
   it('sets up the bank with the right supply per player count', () => {
+    const state3 = createGame({ roomCode: 'C', playerCount: 3, players: samplePlayers(3), rng: mulberry32(1) });
+    for (const r of RESOURCES) expect(state3.bank[r]).toBe(19);
+
     const state4 = createGame({ roomCode: 'A', playerCount: 4, players: samplePlayers(4), rng: mulberry32(1) });
     for (const r of RESOURCES) expect(state4.bank[r]).toBe(19);
 
@@ -62,6 +65,8 @@ describe('createGame', () => {
   });
 
   it('builds a full, unshuffled-composition dev card deck matching the player count', () => {
+    const state3 = createGame({ roomCode: 'C', playerCount: 3, players: samplePlayers(3), rng: mulberry32(1) });
+    expect(state3.devDeck).toHaveLength(25);
     const state4 = createGame({ roomCode: 'A', playerCount: 4, players: samplePlayers(4), rng: mulberry32(1) });
     expect(state4.devDeck).toHaveLength(25);
     const state6 = createGame({ roomCode: 'B', playerCount: 6, players: samplePlayers(6), rng: mulberry32(1) });

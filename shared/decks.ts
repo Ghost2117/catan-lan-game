@@ -12,21 +12,24 @@ export const CITIES_PER_PLAYER = 4;
 export const MIN_LONGEST_ROAD = 5;
 export const MIN_LARGEST_ARMY = 3;
 
-// Bank supply. Base game ships 19 of each resource; the 5-6p extension adds
-// enough cards to comfortably support more players (24 of each is the
-// commonly used total once the extension's resource cards are added in).
+// Bank supply. The base game's box (3-4 players) ships one fixed 19-per-
+// resource bank regardless of whether 3 or 4 people are playing; the 5-6p
+// extension adds enough cards to comfortably support more players (24 of
+// each is the exact total once the extension's resource cards are added).
 export const BANK_SUPPLY: Record<PlayerCount, number> = {
+  3: 19,
   4: 19,
   5: 24,
   6: 24,
 };
 
-// Dev card deck composition, matching the physical decks exactly. Base game:
-// 25 cards (14 knight, 5 victory point, 2 each of road building/year of
-// plenty/monopoly). The 5-6p extension adds 9 cards on top (6 knight, 1 each
-// of road building/year of plenty/monopoly) and adds no victory point cards,
-// for a 34-card deck.
+// Dev card deck composition, matching the physical decks exactly. Base game
+// (3-4 players, one fixed deck regardless of count): 25 cards (14 knight, 5
+// victory point, 2 each of road building/year of plenty/monopoly). The 5-6p
+// extension adds 9 cards on top (6 knight, 1 each of road building/year of
+// plenty/monopoly) and adds no victory point cards, for a 34-card deck.
 const DEV_DECK_COMPOSITION: Record<PlayerCount, Record<DevCardType, number>> = {
+  3: { knight: 14, victoryPoint: 5, roadBuilding: 2, yearOfPlenty: 2, monopoly: 2 },
   4: { knight: 14, victoryPoint: 5, roadBuilding: 2, yearOfPlenty: 2, monopoly: 2 },
   5: { knight: 20, victoryPoint: 5, roadBuilding: 3, yearOfPlenty: 3, monopoly: 3 },
   6: { knight: 20, victoryPoint: 5, roadBuilding: 3, yearOfPlenty: 3, monopoly: 3 },
