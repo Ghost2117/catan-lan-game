@@ -130,7 +130,7 @@ export function BoardView({ state, legalVertexIds, legalEdgeIds, legalTileIds, o
               x2={b.x}
               y2={b.y}
               stroke={owner ? playerColor(state, owner) : '#ffffff'}
-              strokeWidth={owner ? 8 : 10}
+              strokeWidth={owner ? 14 : 10}
               strokeOpacity={owner ? 1 : 0.5}
               strokeLinecap="round"
             />
@@ -149,7 +149,7 @@ export function BoardView({ state, legalVertexIds, legalEdgeIds, legalTileIds, o
             {isLegal && <circle cx={vertex.x} cy={vertex.y} r={24} fill="transparent" />}
             {isLegal && !building && <circle cx={vertex.x} cy={vertex.y} r={12} fill="#ffffff" fillOpacity={0.55} stroke="#333" />}
             {building && (
-              <g transform={`translate(${vertex.x} ${vertex.y})`}>
+              <g transform={`translate(${vertex.x} ${vertex.y}) scale(1.6)`}>
                 {building.type === 'settlement' ? (
                   <SettlementIcon color={playerColor(state, building.playerId)} />
                 ) : (
