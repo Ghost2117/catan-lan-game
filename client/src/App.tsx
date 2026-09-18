@@ -10,6 +10,7 @@ import { PlayerDock } from './components/PlayerDock.js';
 import { OpponentsPanel } from './components/OpponentsPanel.js';
 import { PlayerChip } from './components/PlayerChip.js';
 import { HandPanel } from './components/HandPanel.js';
+import { DiceDisplay } from './components/DiceDisplay.js';
 import { ActionBar } from './components/ActionBar.js';
 import { TradePanel } from './components/TradePanel.js';
 import { DiscardModal } from './components/DiscardModal.js';
@@ -208,6 +209,10 @@ export default function App() {
             🔁 There's an active trade offer — click to view it
           </button>
         )}
+      </div>
+
+      <div style={{ gridArea: 'dice' }}>
+        <DiceDisplay state={state} selfId={selfId!} dispatch={dispatch} />
       </div>
 
       <div style={{ ...cardStyle, gridArea: 'board' }}>

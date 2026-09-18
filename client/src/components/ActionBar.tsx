@@ -59,12 +59,6 @@ export function ActionBar({ state, selfId, buildMode, setBuildMode, dispatch, on
 
   return (
     <div style={barStyle}>
-      {state.phase === 'roll' && isMyTurn && (
-        <button style={primaryBtn} onClick={() => dispatch({ type: 'ROLL_DICE' })}>
-          🎲 Roll Dice
-        </button>
-      )}
-
       {canPlayDevCards && (
         <>
           <button
@@ -280,5 +274,3 @@ const disabledBtn: React.CSSProperties = {
   fontSize: 13,
   whiteSpace: 'nowrap',
 };
-
-const primaryBtn: React.CSSProperties = { ...enabledBtn, fontSize: 16, padding: '10px 18px', fontWeight: 700 };

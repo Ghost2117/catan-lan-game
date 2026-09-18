@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { Board } from '../../../shared/types.js';
 import type { ClientGameState } from '../../../shared/protocol.js';
-import { PLAYER_COLOR_SWATCH, PORT_GENERIC_ICON, RESOURCE_COLORS, RESOURCE_ICONS } from '../boardColors.js';
+import { PLAYER_COLOR_SWATCH, PORT_BOAT_ICON, PORT_GENERIC_ICON, RESOURCE_COLORS, RESOURCE_ICONS } from '../boardColors.js';
 import { hexPoints, TileArt } from './TileArt.js';
 import { CityIcon, SettlementIcon } from './PieceArt.js';
 
@@ -43,6 +43,7 @@ export function BoardView({ state, legalVertexIds, legalEdgeIds, legalTileIds, o
   const { board } = state;
 
   const bounds = useMemo(() => computeBoardBounds(board), [board]);
+  const boardCenter = { x: bounds.minX + bounds.width / 2, y: bounds.minY + bounds.height / 2 };
 
   return (
     <svg
@@ -93,19 +94,36 @@ export function BoardView({ state, legalVertexIds, legalEdgeIds, legalTileIds, o
       })}
 
       {board.ports.map((port) => {
+        // The two vertices a port touches are always adjacent (directly
+        // connected by the coastal edge between them), so the "no two
+        // settlements next to each other" rule means at most one of them
+        // ever gets built on — a real single dock, just two possible spots
+        // for it. Piers fan out from both toward one shared dock offshore,
+        // rather than converging on the coastline itself, to make that
+        // "either spot, one dock" relationship (and the fact that it's
+        // usable at all) obvious rather than implied by a dashed line.
         const [a, b] = port.vertexIds.map((id) => board.vertices[id]);
         const mx = (a.x + b.x) / 2;
         const my = (a.y + b.y) / 2;
+        const dx = mx - boardCenter.x;
+        const dy = my - boardCenter.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const OUT = 42;
+        const dockX = mx + (dx / dist) * OUT;
+        const dockY = my + (dy / dist) * OUT;
         const icon = port.type === '3:1' ? PORT_GENERIC_ICON : RESOURCE_ICONS[port.type];
         return (
           <g key={`${a.id}-${b.id}`}>
-            <line x1={a.x} y1={a.y} x2={mx} y2={my} stroke="#4a7ab5" strokeWidth={3} strokeDasharray="4 3" />
-            <line x1={b.x} y1={b.y} x2={mx} y2={my} stroke="#4a7ab5" strokeWidth={3} strokeDasharray="4 3" />
-            <circle cx={mx} cy={my} r={19} fill="#e8f1fb" stroke="#4a7ab5" strokeWidth={1.5} />
-            <text x={mx} y={my - 1} textAnchor="middle" fontSize={17}>
+            <line x1={a.x} y1={a.y} x2={dockX} y2={dockY} stroke="#7a5230" strokeWidth={4} strokeLinecap="round" />
+            <line x1={b.x} y1={b.y} x2={dockX} y2={dockY} stroke="#7a5230" strokeWidth={4} strokeLinecap="round" />
+            <text x={dockX} y={dockY - 21} textAnchor="middle" fontSize={18}>
+              {PORT_BOAT_ICON}
+            </text>
+            <circle cx={dockX} cy={dockY} r={17} fill="#e8f1fb" stroke="#4a7ab5" strokeWidth={1.5} />
+            <text x={dockX} y={dockY + 5} textAnchor="middle" fontSize={15} fontWeight={700}>
               {icon}
             </text>
-            <text x={mx} y={my + 13} textAnchor="middle" fontSize={9} fontWeight={700} fill="#2a4a72">
+            <text x={dockX} y={dockY + 27} textAnchor="middle" fontSize={9} fontWeight={700} fill="#2a4a72">
               {port.type === '3:1' ? '3:1' : '2:1'}
             </text>
           </g>

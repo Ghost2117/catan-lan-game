@@ -21,13 +21,6 @@ function setup(overrides: Partial<{ state: ClientGameState }> = {}) {
 }
 
 describe('ActionBar: roll phase', () => {
-  it("shows Roll Dice on the current player's turn and dispatches ROLL_DICE when clicked", () => {
-    const { dispatch } = setup();
-    const rollBtn = screen.getByRole('button', { name: /Roll Dice/ });
-    fireEvent.click(rollBtn);
-    expect(dispatch).toHaveBeenCalledWith({ type: 'ROLL_DICE' });
-  });
-
   it('does not show any build buttons before rolling (building is a main-phase action)', () => {
     setup();
     expect(screen.queryByRole('button', { name: /Settlement/ })).toBeNull();
