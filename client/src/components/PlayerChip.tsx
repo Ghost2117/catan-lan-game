@@ -60,11 +60,32 @@ export function PlayerChip({ state, player, isCurrent, layout }: Props) {
         <span style={statStyle} title="Development cards">
           🃏 {player.devCardCount}
         </span>
-        {state.longestRoad?.playerId === player.id && <span title="Longest Road">🛣️</span>}
-        {state.largestArmy?.playerId === player.id && <span title="Largest Army">⚔️</span>}
+        {state.longestRoad?.playerId === player.id && (
+          <span style={awardStyle} title={`Longest Road — ${state.longestRoad.length} roads (+2 VP)`}>
+            🛣️ {state.longestRoad.length}
+          </span>
+        )}
+        {state.largestArmy?.playerId === player.id && (
+          <span style={awardStyle} title={`Largest Army — ${state.largestArmy.count} knights (+2 VP)`}>
+            ⚔️ {state.largestArmy.count}
+          </span>
+        )}
       </div>
     </div>
   );
 }
 
 const statStyle: React.CSSProperties = { fontSize: 12, color: 'var(--text-muted)' };
+
+const awardStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 3,
+  padding: '2px 7px',
+  borderRadius: 999,
+  background: '#fbe8a6',
+  border: '1px solid #c99a2e',
+  color: '#6b4f0a',
+  fontWeight: 700,
+  fontSize: 11,
+};
