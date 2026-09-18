@@ -22,6 +22,10 @@ function toPartial(amounts: Record<Resource, number>): Partial<Record<Resource, 
   return result;
 }
 
+function totalAmount(amounts: Record<Resource, number>): number {
+  return RESOURCES.reduce((sum, r) => sum + amounts[r], 0);
+}
+
 export function TradePanel({ state, selfId, dispatch, onClose }: Props) {
   const self = state.players.find((p) => p.id === selfId)!;
   const isMyTurn = state.players[state.currentPlayerIndex].id === selfId;
@@ -32,6 +36,7 @@ export function TradePanel({ state, selfId, dispatch, onClose }: Props) {
   const [offerWant, setOfferWant] = useState(emptyAmounts());
 
   const rate = self.resources ? getBankTradeRate(state, self, bankGive) : 4;
+  const canSubmitOffer = totalAmount(offerGive) > 0 || totalAmount(offerWant) > 0;
 
   return (
     <div style={overlayStyle}>
@@ -45,12 +50,20 @@ export function TradePanel({ state, selfId, dispatch, onClose }: Props) {
 
         <section>
           <h4 style={sectionTitle}>Bank / Port Trade</h4>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
+            {RESOURCES.map((r) => (
+              <div key={r} style={rateChipStyle} title={`Your best rate for ${RESOURCE_LABELS[r]}`}>
+                <span>{RESOURCE_ICONS[r]}</span>
+                <span style={{ fontWeight: 700 }}>{self.resources ? getBankTradeRate(state, self, r) : 4}:1</span>
+              </div>
+            ))}
+          </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <span>Give {rate}x</span>
             <select value={bankGive} onChange={(e) => setBankGive(e.target.value as Resource)}>
               {RESOURCES.map((r) => (
                 <option key={r} value={r}>
-                  {RESOURCE_ICONS[r]} {RESOURCE_LABELS[r]}
+                  {RESOURCE_ICONS[r]} {RESOURCE_LABELS[r]} (you have {self.resources?.[r] ?? 0})
                 </option>
               ))}
             </select>
@@ -75,10 +88,11 @@ export function TradePanel({ state, selfId, dispatch, onClose }: Props) {
         {isMyTurn && !state.activeTrade && (
           <section>
             <h4 style={sectionTitle}>Offer a Trade to Other Players</h4>
-            <ResourceAmountGrid label="You give" amounts={offerGive} setAmounts={setOfferGive} max={self.resources} />
-            <ResourceAmountGrid label="You want" amounts={offerWant} setAmounts={setOfferWant} />
+            <ResourceStepperGrid label="You give" amounts={offerGive} setAmounts={setOfferGive} max={self.resources} />
+            <ResourceStepperGrid label="You want" amounts={offerWant} setAmounts={setOfferWant} />
             <button
               style={{ ...enabledBtn, marginTop: 8 }}
+              disabled={!canSubmitOffer}
               onClick={() => dispatch({ type: 'OFFER_TRADE', give: toPartial(offerGive), want: toPartial(offerWant) })}
             >
               Propose Trade
@@ -103,9 +117,12 @@ function ActiveTradeSection({ state, selfId, dispatch }: { state: ClientGameStat
   return (
     <section>
       <h4 style={sectionTitle}>Active Trade</h4>
-      <p style={{ fontSize: 13 }}>
-        <strong>{proposer.name}</strong> offers {describeAmounts(trade.give)} for {describeAmounts(trade.want)}
-      </p>
+      <div style={{ fontSize: 13, display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+        <strong>{proposer.name} offers:</strong>
+        <ResourceChipRow amounts={trade.give} />
+        <strong>for:</strong>
+        <ResourceChipRow amounts={trade.want} />
+      </div>
 
       {isProposer ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -148,14 +165,21 @@ function ActiveTradeSection({ state, selfId, dispatch }: { state: ClientGameStat
   );
 }
 
-function describeAmounts(amounts: Partial<Record<Resource, number>>): string {
-  const parts = Object.entries(amounts)
-    .filter(([, n]) => (n ?? 0) > 0)
-    .map(([r, n]) => `${n} ${r}`);
-  return parts.length > 0 ? parts.join(', ') : 'nothing';
+function ResourceChipRow({ amounts }: { amounts: Partial<Record<Resource, number>> }) {
+  const entries = RESOURCES.filter((r) => (amounts[r] ?? 0) > 0);
+  if (entries.length === 0) return <span style={{ fontSize: 13, color: '#666' }}>nothing</span>;
+  return (
+    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {entries.map((r) => (
+        <span key={r} style={chipStyle}>
+          {RESOURCE_ICONS[r]} ×{amounts[r]}
+        </span>
+      ))}
+    </div>
+  );
 }
 
-function ResourceAmountGrid({
+function ResourceStepperGrid({
   label,
   amounts,
   setAmounts,
@@ -166,22 +190,36 @@ function ResourceAmountGrid({
   setAmounts: (a: Record<Resource, number>) => void;
   max?: Record<Resource, number> | null;
 }) {
+  function adjust(r: Resource, delta: number) {
+    const cap = max ? max[r] : 19;
+    const next = Math.max(0, Math.min(cap, amounts[r] + delta));
+    setAmounts({ ...amounts, [r]: next });
+  }
+
   return (
     <div style={{ marginBottom: 8 }}>
       <div style={{ fontSize: 12, color: '#666' }}>{label}</div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {RESOURCES.map((r) => (
-          <label key={r} style={{ fontSize: 12, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            {RESOURCE_ICONS[r]} {RESOURCE_LABELS[r]}
-            <input
-              type="number"
-              min={0}
-              max={max ? max[r] : 19}
-              value={amounts[r]}
-              onChange={(e) => setAmounts({ ...amounts, [r]: Math.max(0, Number(e.target.value)) })}
-              style={{ width: 48 }}
-            />
-          </label>
+          <div key={r} style={stepperCellStyle} title={max ? `You have ${max[r]}` : undefined}>
+            <div style={{ fontSize: 16 }}>{RESOURCE_ICONS[r]}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <button type="button" style={stepperBtnStyle} onClick={() => adjust(r, -1)} disabled={amounts[r] <= 0} aria-label={`Fewer ${r}`}>
+                −
+              </button>
+              <span style={{ minWidth: 16, textAlign: 'center', fontWeight: 700 }}>{amounts[r]}</span>
+              <button
+                type="button"
+                style={stepperBtnStyle}
+                onClick={() => adjust(r, 1)}
+                disabled={max ? amounts[r] >= max[r] : false}
+                aria-label={`More ${r}`}
+              >
+                +
+              </button>
+            </div>
+            {max && <div style={{ fontSize: 10, color: '#999' }}>have {max[r]}</div>}
+          </div>
         ))}
       </div>
     </div>
@@ -222,4 +260,51 @@ const enabledBtn: React.CSSProperties = {
   color: '#2f6b3a',
   cursor: 'pointer',
   fontSize: 13,
+};
+
+const rateChipStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 5,
+  padding: '4px 8px',
+  borderRadius: 6,
+  border: '1px solid var(--border)',
+  background: 'var(--panel)',
+  fontSize: 12,
+};
+
+const chipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 3,
+  padding: '3px 7px',
+  borderRadius: 6,
+  border: '1px solid var(--border)',
+  background: 'var(--panel)',
+  fontSize: 12,
+  fontWeight: 600,
+};
+
+const stepperCellStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: 3,
+  padding: '6px 8px',
+  borderRadius: 8,
+  border: '1px solid var(--border)',
+  minWidth: 56,
+};
+
+const stepperBtnStyle: React.CSSProperties = {
+  width: 22,
+  height: 22,
+  borderRadius: 5,
+  border: '1px solid #2f6b3a',
+  background: '#fff',
+  color: '#2f6b3a',
+  cursor: 'pointer',
+  fontSize: 14,
+  lineHeight: 1,
+  padding: 0,
 };

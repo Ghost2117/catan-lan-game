@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
+import type { Board } from '../../../shared/types.js';
 import type { ClientGameState } from '../../../shared/protocol.js';
-import { PLAYER_COLOR_SWATCH, RESOURCE_COLORS } from '../boardColors.js';
+import { PLAYER_COLOR_SWATCH, PORT_GENERIC_ICON, RESOURCE_COLORS, RESOURCE_ICONS } from '../boardColors.js';
 import { hexPoints, TileArt } from './TileArt.js';
+import { CityIcon, SettlementIcon } from './PieceArt.js';
 
 interface Props {
   state: ClientGameState;
@@ -13,6 +15,25 @@ interface Props {
   onTileClick: (tileId: string) => void;
 }
 
+export interface BoardBounds {
+  minX: number;
+  minY: number;
+  width: number;
+  height: number;
+}
+
+export function computeBoardBounds(board: Board): BoardBounds {
+  const xs = Object.values(board.vertices).map((v) => v.x);
+  const ys = Object.values(board.vertices).map((v) => v.y);
+  const pad = 60;
+  return {
+    minX: Math.min(...xs) - pad,
+    minY: Math.min(...ys) - pad,
+    width: Math.max(...xs) - Math.min(...xs) + pad * 2,
+    height: Math.max(...ys) - Math.min(...ys) + pad * 2,
+  };
+}
+
 function playerColor(state: ClientGameState, playerId: string): string {
   const player = state.players.find((p) => p.id === playerId);
   return player ? PLAYER_COLOR_SWATCH[player.color] ?? player.color : '#999';
@@ -21,28 +42,22 @@ function playerColor(state: ClientGameState, playerId: string): string {
 export function BoardView({ state, legalVertexIds, legalEdgeIds, legalTileIds, onVertexClick, onEdgeClick, onTileClick }: Props) {
   const { board } = state;
 
-  const bounds = useMemo(() => {
-    const xs = Object.values(board.vertices).map((v) => v.x);
-    const ys = Object.values(board.vertices).map((v) => v.y);
-    const pad = 60;
-    return {
-      minX: Math.min(...xs) - pad,
-      minY: Math.min(...ys) - pad,
-      width: Math.max(...xs) - Math.min(...xs) + pad * 2,
-      height: Math.max(...ys) - Math.min(...ys) + pad * 2,
-    };
-  }, [board]);
+  const bounds = useMemo(() => computeBoardBounds(board), [board]);
 
   return (
     <svg
       viewBox={`${bounds.minX} ${bounds.minY} ${bounds.width} ${bounds.height}`}
-      style={{ width: '100%', height: 'auto', maxHeight: '70vh', touchAction: 'manipulation' }}
+      style={{ width: '100%', height: '100%', display: 'block' }}
     >
       <defs>
         <clipPath id="hex-clip">
           <polygon points={hexPoints()} />
         </clipPath>
       </defs>
+
+      {/* Light-blue "sea" behind everything, including the letterboxed
+          margin outside the hex ring. */}
+      <rect x={bounds.minX} y={bounds.minY} width={bounds.width} height={bounds.height} fill="var(--water)" />
 
       {board.tiles.map((tile) => {
         const points = tile.vertexIds.map((id) => board.vertices[id]).map((v) => `${v.x},${v.y}`).join(' ');
@@ -59,12 +74,12 @@ export function BoardView({ state, legalVertexIds, legalEdgeIds, legalTileIds, o
             {isLegal && <polygon points={points} fill="#ffffff" opacity={0.3} />}
             {tile.number !== null && (
               <g>
-                <circle cx={cx} cy={cy} r={22} fill="#f5ecd7" stroke="#3a3a3a" strokeWidth={1.5} />
+                <circle cx={cx} cy={cy} r={27} fill="#f5ecd7" stroke="#3a3a3a" strokeWidth={1.5} />
                 <text
                   x={cx}
-                  y={cy + 7}
+                  y={cy + 9}
                   textAnchor="middle"
-                  fontSize={22}
+                  fontSize={27}
                   fontWeight={700}
                   fill={tile.number === 6 || tile.number === 8 ? '#c1372b' : '#2a2a2a'}
                 >
@@ -81,13 +96,17 @@ export function BoardView({ state, legalVertexIds, legalEdgeIds, legalTileIds, o
         const [a, b] = port.vertexIds.map((id) => board.vertices[id]);
         const mx = (a.x + b.x) / 2;
         const my = (a.y + b.y) / 2;
+        const icon = port.type === '3:1' ? PORT_GENERIC_ICON : RESOURCE_ICONS[port.type];
         return (
           <g key={`${a.id}-${b.id}`}>
             <line x1={a.x} y1={a.y} x2={mx} y2={my} stroke="#4a7ab5" strokeWidth={3} strokeDasharray="4 3" />
             <line x1={b.x} y1={b.y} x2={mx} y2={my} stroke="#4a7ab5" strokeWidth={3} strokeDasharray="4 3" />
-            <circle cx={mx} cy={my} r={16} fill="#e8f1fb" stroke="#4a7ab5" strokeWidth={1.5} />
-            <text x={mx} y={my + 4} textAnchor="middle" fontSize={11} fontWeight={700} fill="#2a4a72">
-              {port.type === '3:1' ? '3:1' : port.type.slice(0, 2).toUpperCase()}
+            <circle cx={mx} cy={my} r={19} fill="#e8f1fb" stroke="#4a7ab5" strokeWidth={1.5} />
+            <text x={mx} y={my - 1} textAnchor="middle" fontSize={17}>
+              {icon}
+            </text>
+            <text x={mx} y={my + 13} textAnchor="middle" fontSize={9} fontWeight={700} fill="#2a4a72">
+              {port.type === '3:1' ? '3:1' : '2:1'}
             </text>
           </g>
         );
@@ -129,19 +148,14 @@ export function BoardView({ state, legalVertexIds, legalEdgeIds, legalTileIds, o
                 finger-sized minimum even though the visible marker is small. */}
             {isLegal && <circle cx={vertex.x} cy={vertex.y} r={24} fill="transparent" />}
             {isLegal && !building && <circle cx={vertex.x} cy={vertex.y} r={12} fill="#ffffff" fillOpacity={0.55} stroke="#333" />}
-            {building && building.type === 'settlement' && (
-              <circle cx={vertex.x} cy={vertex.y} r={13} fill={playerColor(state, building.playerId)} stroke="#222" strokeWidth={2} />
-            )}
-            {building && building.type === 'city' && (
-              <rect
-                x={vertex.x - 14}
-                y={vertex.y - 14}
-                width={28}
-                height={28}
-                fill={playerColor(state, building.playerId)}
-                stroke="#222"
-                strokeWidth={2}
-              />
+            {building && (
+              <g transform={`translate(${vertex.x} ${vertex.y})`}>
+                {building.type === 'settlement' ? (
+                  <SettlementIcon color={playerColor(state, building.playerId)} />
+                ) : (
+                  <CityIcon color={playerColor(state, building.playerId)} />
+                )}
+              </g>
             )}
           </g>
         );

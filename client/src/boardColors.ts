@@ -26,6 +26,9 @@ export const RESOURCE_ICONS: Record<Resource, string> = {
   wool: '🐑',
 };
 
+/** Generic 3:1 "any resource" harbor — distinct from any single resource icon. */
+export const PORT_GENERIC_ICON = '⚓';
+
 export const DEV_CARD_LABELS: Record<string, string> = {
   knight: 'Knight',
   roadBuilding: 'Road Building',

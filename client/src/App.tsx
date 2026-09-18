@@ -4,8 +4,11 @@ import type { ClientGameState } from '../../shared/protocol.js';
 import { useConnection } from './connection.js';
 import { HomeScreen } from './components/HomeScreen.js';
 import { LobbyScreen } from './components/LobbyScreen.js';
-import { BoardView } from './components/BoardView.js';
+import { BoardView, computeBoardBounds } from './components/BoardView.js';
+import { ZoomableBoard } from './components/ZoomableBoard.js';
 import { PlayerDock } from './components/PlayerDock.js';
+import { OpponentsPanel } from './components/OpponentsPanel.js';
+import { PlayerChip } from './components/PlayerChip.js';
 import { HandPanel } from './components/HandPanel.js';
 import { ActionBar } from './components/ActionBar.js';
 import { TradePanel } from './components/TradePanel.js';
@@ -58,6 +61,12 @@ export default function App() {
     }
     return { vertices: null, edges: null, tiles: null } as const;
   }, [state, selfId, buildMode, pendingSetupVertex]);
+
+  const boardAspectRatio = useMemo(() => {
+    if (!state) return 1;
+    const bounds = computeBoardBounds(state.board);
+    return bounds.width / bounds.height;
+  }, [state]);
 
   const reconnectingBanner = conn.status === 'reconnecting' && (
     <div style={reconnectingBannerStyle}>🔌 Connection lost — reconnecting…</div>
@@ -148,9 +157,8 @@ export default function App() {
   const isMyTurn = state.players[state.currentPlayerIndex]?.id === selfId;
 
   return (
-    <div style={{ maxWidth: 1040, margin: '0 auto', padding: '12px 16px 32px' }}>
-      {reconnectingBanner}
-      <header style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+    <div className="game-layout">
+      <header style={{ gridArea: 'header', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
         <h1 style={{ fontSize: 20, margin: '6px 0' }}>🏝️ Catan LAN — Room {state.roomCode}</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <PhaseBadge state={state} isMyTurn={isMyTurn} />
@@ -161,69 +169,86 @@ export default function App() {
       </header>
 
       <PlayerDock state={state} />
+      <OpponentsPanel state={state} />
 
-      {isGameOver && winner && (
-        <div
-          style={{
-            padding: 18,
-            background: 'var(--accent-light)',
-            border: '1px solid var(--accent)',
-            borderRadius: 10,
-            textAlign: 'center',
-            margin: '10px 0',
-          }}
-        >
-          <h2 style={{ margin: 0 }}>🏆 {winner.name} wins!</h2>
-          <button onClick={leaveSession} style={{ ...leaveBtnStyle, marginTop: 12, fontSize: 14 }}>
-            Play Again (new game)
-          </button>
-        </div>
-      )}
-
-      {state.phase === 'setup' && (
-        <div style={hintStyle}>
-          {state.setupQueue[0] === selfId
-            ? pendingSetupVertex
-              ? '👉 Now click a road spot next to your new settlement.'
-              : '👉 Click an empty spot to place your settlement.'
-            : `Waiting for ${state.players.find((p) => p.id === state.setupQueue[0])?.name ?? 'the next player'} to place a settlement...`}
-        </div>
-      )}
-
-      {activeTradeId && !showTrade && (
-        <button style={{ ...hintStyle, ...clickableHint }} onClick={() => setShowTrade(true)}>
-          🔁 There's an active trade offer — click to view it
-        </button>
-      )}
-
-      <div style={cardStyle}>
-        <BoardView
-          state={state}
-          legalVertexIds={legalTargets.vertices}
-          legalEdgeIds={legalTargets.edges}
-          legalTileIds={legalTargets.tiles}
-          onVertexClick={handleVertexClick}
-          onEdgeClick={handleEdgeClick}
-          onTileClick={handleTileClick}
-        />
+      <div style={{ gridArea: 'banner' }}>
+        {reconnectingBanner}
+        {isGameOver && winner && (
+          <div
+            style={{
+              padding: 18,
+              background: 'var(--accent-light)',
+              border: '1px solid var(--accent)',
+              borderRadius: 10,
+              textAlign: 'center',
+              margin: '10px 0',
+            }}
+          >
+            <h2 style={{ margin: 0 }}>🏆 {winner.name} wins!</h2>
+            <button onClick={leaveSession} style={{ ...leaveBtnStyle, marginTop: 12, fontSize: 14 }}>
+              Play Again (new game)
+            </button>
+          </div>
+        )}
       </div>
 
-      {!isGameOver && self && (
-        <ActionBar state={state} selfId={selfId!} buildMode={buildMode} setBuildMode={setBuildMode} dispatch={dispatch} onOpenTrade={() => setShowTrade(true)} />
-      )}
+      <div style={{ gridArea: 'hint' }}>
+        {state.phase === 'setup' && (
+          <div style={hintStyle}>
+            {state.setupQueue[0] === selfId
+              ? pendingSetupVertex
+                ? '👉 Now click a road spot next to your new settlement.'
+                : '👉 Click an empty spot to place your settlement.'
+              : `Waiting for ${state.players.find((p) => p.id === state.setupQueue[0])?.name ?? 'the next player'} to place a settlement...`}
+          </div>
+        )}
 
-      {self && <HandPanel state={state} selfId={selfId!} />}
-
-      {conn.actionError && (
-        <div style={errorBannerStyle}>
-          <span>⚠️ {conn.actionError}</span>
-          <button onClick={clearActionError} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'inherit' }}>
-            ✕
+        {activeTradeId && !showTrade && (
+          <button style={{ ...hintStyle, ...clickableHint }} onClick={() => setShowTrade(true)}>
+            🔁 There's an active trade offer — click to view it
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
-      <EventLog state={state} />
+      <div style={{ ...cardStyle, gridArea: 'board' }}>
+        <ZoomableBoard aspectRatio={boardAspectRatio}>
+          <BoardView
+            state={state}
+            legalVertexIds={legalTargets.vertices}
+            legalEdgeIds={legalTargets.edges}
+            legalTileIds={legalTargets.tiles}
+            onVertexClick={handleVertexClick}
+            onEdgeClick={handleEdgeClick}
+            onTileClick={handleTileClick}
+          />
+        </ZoomableBoard>
+      </div>
+
+      <div style={{ gridArea: 'actions' }}>
+        {!isGameOver && self && (
+          <ActionBar state={state} selfId={selfId!} buildMode={buildMode} setBuildMode={setBuildMode} dispatch={dispatch} onOpenTrade={() => setShowTrade(true)} />
+        )}
+      </div>
+
+      <div style={{ gridArea: 'hand', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {self && <PlayerChip state={state} player={self} isCurrent={isMyTurn && !isGameOver} layout="column" />}
+        {self && <HandPanel state={state} selfId={selfId!} />}
+      </div>
+
+      <div style={{ gridArea: 'error' }}>
+        {conn.actionError && (
+          <div style={errorBannerStyle}>
+            <span>⚠️ {conn.actionError}</span>
+            <button onClick={clearActionError} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'inherit' }}>
+              ✕
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div style={{ gridArea: 'log' }}>
+        <EventLog state={state} />
+      </div>
 
       {showTrade && !isGameOver && <TradePanel state={state} selfId={selfId!} dispatch={dispatch} onClose={() => setShowTrade(false)} />}
       {needsToDiscard && <DiscardModal state={state} selfId={selfId!} dispatch={dispatch} />}
@@ -298,10 +323,10 @@ const leaveBtnStyle: React.CSSProperties = {
 };
 
 const cardStyle: React.CSSProperties = {
-  background: 'var(--panel)',
+  background: 'var(--water)',
   border: '1px solid var(--border)',
   borderRadius: 12,
-  padding: 8,
+  padding: 4,
   margin: '8px 0',
 };
 
